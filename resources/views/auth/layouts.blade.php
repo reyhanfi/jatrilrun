@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@hasSection('title')@yield('title') | @endif{{ config('app.name') }}</title>
+    @isset($pageDescription)
+        <meta name="description" content="{{ $pageDescription }}">
+    @endisset
+    @isset($canonicalUrl)
+        <link rel="canonical" href="{{ $canonicalUrl }}">
+    @endisset
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap">
@@ -565,6 +571,7 @@
             }
         }
     </style>
+    @stack('styles')
 </head>
 <body>
     <nav class="topbar">
@@ -575,6 +582,7 @@
             </div>
 
             <div class="nav-links">
+                <a href="{{ route('event.catalog') }}" class="nav-link">Jelajahi Event</a>
                 @auth
                     <a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a>
                     <a href="{{ route('event.index') }}" class="nav-link">Data Event</a>
@@ -606,5 +614,6 @@
         @endif
         @yield('content')
     </main>
+    @stack('scripts')
 </body>
 </html>

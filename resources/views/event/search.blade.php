@@ -46,7 +46,7 @@
                     @forelse ($hasil as $event)
                         <tr>
                             <td>{{ ($hasil->currentPage() - 1) * $hasil->perPage() + $loop->iteration }}</td>
-                            <td><a class="inline-link" href="{{ route('event.show', $event) }}">{{ $event->nama_event }}</a></td>
+                            <td><a class="inline-link" href="{{ route('event.show', ['event' => $event->slug]) }}">{{ $event->nama_event }}</a></td>
                             <td>{{ $event->penyelenggara }}</td>
                             <td>{{ $event->tipe_event }}</td>
                             <td>{{ number_format($event->slot_peserta, 0, ',', '.') }} peserta</td>

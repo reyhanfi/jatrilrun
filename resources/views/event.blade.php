@@ -130,7 +130,7 @@
                             </td>
                             <td>
                                 <div class="table-actions">
-                                    <a href="{{ route('event.show', $event) }}" class="mini-button edit">Detail</a>
+                                    <a href="{{ route('event.show', ['event' => $event->slug]) }}" class="mini-button edit">Detail</a>
                                     @if (auth()->user()->level === 'admin')
                                         <a href="{{ route('event.registrations.index', $event) }}" class="mini-button edit">Daftar Peserta</a>
                                         <a href="{{ route('event.edit', $event->id) }}" class="mini-button edit">Edit</a>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginRegisterController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventGalleryController;
 use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\EventSpreadsheetController;
 use App\Http\Controllers\UserController;
@@ -15,6 +16,8 @@ Route::get('/', function () {
 
     return redirect()->route('login');
 })->name('home');
+
+Route::get('/events', [EventController::class, 'catalog'])->name('event.catalog');
 
 Route::middleware('guest')
     ->controller(LoginRegisterController::class)
@@ -46,6 +49,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/event/{event}/registrations', [EventRegistrationController::class, 'store'])
         ->name('event.registrations.store');
+    Route::get('/event/{event:slug}/register', [EventRegistrationController::class, 'create'])
+        ->name('event.registrations.create');
 
     Route::middleware('admin')->group(function () {
         Route::resource('users', UserController::class);
@@ -59,7 +64,23 @@ Route::middleware('auth')->group(function () {
             ->name('registrations.ktp');
         Route::post('/event/import', [EventSpreadsheetController::class, 'import'])->name('event.import');
         Route::get('/event/import/template', [EventSpreadsheetController::class, 'template'])->name('event.import.template');
-    });
 
-    Route::get('/event/{event}', [EventController::class, 'show'])->whereNumber('event')->name('event.show');
+        Route::controller(EventGalleryController::class)
+            ->prefix('event/{event}')
+            ->whereNumber('event')
+            ->scopeBindings()
+            ->group(function () {
+                Route::get('/gallery', 'index')->name('event.gallery.index');
+                Route::post('/gallery', 'store')->name('event.gallery.store');
+                Route::get('/gallery/{photo}/edit', 'edit')->name('event.gallery.edit');
+                Route::put('/gallery/{photo}', 'update')->name('event.gallery.update');
+                Route::delete('/gallery/{photo}', 'destroy')->name('event.gallery.destroy');
+                Route::put('/cover', 'updateCover')->name('event.cover.update');
+            });
+    });
 });
+
+Route::get('/event/{legacyEvent}', [EventController::class, 'redirectToSlug'])
+    ->whereNumber('legacyEvent')->name('event.legacy');
+Route::get('/event/{event:slug}', [EventController::class, 'show'])
+    ->where('event', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('event.show');

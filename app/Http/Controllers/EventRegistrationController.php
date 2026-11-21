@@ -14,6 +14,11 @@ use Throwable;
 
 class EventRegistrationController extends Controller
 {
+    public function create(Event $event)
+    {
+        return redirect()->to(route('event.show', ['event' => $event->slug]).'#pendaftaran');
+    }
+
     public function store(Request $request, Event $event)
     {
         $request->validate(['ktp' => 'required|image|mimes:jpg,jpeg,png|max:2048']);
@@ -41,7 +46,7 @@ class EventRegistrationController extends Controller
             throw $exception;
         }
 
-        return redirect()->route('event.show', $event)
+        return redirect()->route('event.show', ['event' => $event->slug])
             ->with('status', 'Pendaftaran berhasil. Status awal Pending.');
     }
 

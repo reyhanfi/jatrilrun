@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -50,11 +53,35 @@ class EventController extends Controller
         ));
     }
 
+    public function catalog()
+    {
+        $events = Event::orderByDesc('tanggal_mulai')->orderByDesc('id')->paginate(12);
+        $pageDescription = 'Jelajahi jadwal event lari dan dokumentasinya di Jatrilrun.';
+
+        return view('event.catalog', compact('events', 'pageDescription'));
+    }
+
+    public function redirectToSlug(Event $legacyEvent)
+    {
+        return redirect()->route('event.show', ['event' => $legacyEvent->slug], 301);
+    }
+
     public function show(Request $request, Event $event)
     {
-        $registration = $event->registrations()->where('user_id', $request->user()->id)->first();
+        $user = $request->user();
+        $registration = $user ? $event->registrations()->where('user_id', $user->id)->first() : null;
+        $photos = $event->photos()->latest('id')->paginate(12)->fragment('galeri');
 
-        return view('event.show', compact('event', 'registration'));
+        $pageDescription = sprintf(
+            'Jadwal dan dokumentasi %s, event %s oleh %s pada %s.',
+            $event->nama_event,
+            $event->tipe_event,
+            $event->penyelenggara,
+            $event->tanggal_mulai->format('d/m/Y')
+        );
+        $canonicalUrl = route('event.show', ['event' => $event->slug]);
+
+        return view('event.show', compact('event', 'registration', 'photos', 'pageDescription', 'canonicalUrl'));
     }
 
     public function create()
@@ -96,8 +123,17 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         try {
-            $event->delete();
-        } catch (\Illuminate\Database\QueryException $exception) {
+            $paths = DB::transaction(function () use ($event) {
+                $lockedEvent = Event::query()->lockForUpdate()->findOrFail($event->id);
+                $paths = $lockedEvent->photos()->pluck('path');
+                if ($lockedEvent->cover_path) {
+                    $paths->push($lockedEvent->cover_path);
+                }
+                $lockedEvent->delete();
+
+                return $paths->all();
+            });
+        } catch (QueryException $exception) {
             if (!$event->registrations()->exists()) {
                 throw $exception;
             }
@@ -105,6 +141,8 @@ class EventController extends Controller
             return redirect()->route('event.index')
                 ->with('pesan', 'Event yang memiliki pendaftaran tidak dapat dihapus.');
         }
+
+        Storage::disk('public')->delete($paths);
 
         return redirect()->route('event.index')
             ->with('pesan', 'Event berhasil dihapus.');
