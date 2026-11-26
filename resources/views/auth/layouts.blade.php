@@ -114,6 +114,41 @@
             color: white;
         }
 
+        .nav-action {
+            appearance: none;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.9rem;
+        }
+
+        .nav-count {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 1px 7px;
+            margin-left: 3px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+        }
+
+        .notification-list {
+            list-style: none;
+            margin: 12px 0 0;
+            padding: 0;
+        }
+
+        .notification-list > li {
+            padding: 12px 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+            overflow-wrap: anywhere;
+        }
+
+        .notification-list p {
+            margin: 4px 0;
+        }
+
         .user-menu {
             display: flex;
             align-items: center;
@@ -122,11 +157,57 @@
         }
 
         .user-pill {
-            padding: 7px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            padding: 4px 11px 4px 4px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 0.9rem;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .user-pill:hover,
+        .user-pill[aria-current="page"] {
+            background: rgba(255, 255, 255, 0.17);
+        }
+
+        .user-pill-name {
+            min-width: 0;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .account-avatar {
+            position: relative;
+            display: inline-grid;
+            place-items: center;
+            flex: 0 0 auto;
+            width: var(--avatar-size);
+            height: var(--avatar-size);
+            overflow: hidden;
+            border-radius: 50%;
+            background: #ffe6db;
+            color: #8c290e;
+            font-size: calc(var(--avatar-size) * 0.42);
+            font-weight: 700;
+        }
+
+        .account-avatar img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .account-avatar img[hidden] {
+            display: none;
         }
 
         .logout-button,
@@ -584,10 +665,19 @@
             <div class="nav-links">
                 <a href="{{ route('event.catalog') }}" class="nav-link">Jelajahi Event</a>
                 @auth
-                    <a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a>
                     <a href="{{ route('event.index') }}" class="nav-link">Data Event</a>
                     @if(Auth::user()->level === 'admin')
                         <a href="{{ route('users.index') }}" class="nav-link">Manajemen User</a>
+                        @php($unreadCount = auth()->user()->unreadNotifications()->count())
+                        <a href="{{ route('dashboard') }}#notifikasi" class="nav-link" aria-label="Notifikasi, {{ $unreadCount }} belum dibaca">
+                            Notifikasi <span class="nav-count">{{ $unreadCount }}</span>
+                        </a>
+                        @if ($unreadCount > 0)
+                            <form action="{{ route('notifications.read-all') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="nav-link nav-action">Tandai semua dibaca</button>
+                            </form>
+                        @endif
                     @endif
                 @endauth
                 @guest
@@ -598,7 +688,11 @@
 
             @auth
                 <div class="user-menu">
-                    <span class="user-pill">{{ auth()->user()->name }}</span>
+                    <a href="{{ route('dashboard') }}" class="user-pill"
+                        @if (request()->routeIs('dashboard')) aria-current="page" @endif>
+                        <x-account-avatar :user="auth()->user()" />
+                        <span class="user-pill-name">{{ auth()->user()->name }}</span>
+                    </a>
                     <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
                         @csrf
                         <button type="submit" class="logout-button">Logout</button>

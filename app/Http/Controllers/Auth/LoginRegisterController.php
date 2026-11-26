@@ -76,11 +76,6 @@ class LoginRegisterController extends Controller
             ->onlyInput('email');
     }
 
-    public function dashboard()
-    {
-        return view('auth.dashboard');
-    }
-
     public function logout(Request $request)
     {
         Auth::logout();

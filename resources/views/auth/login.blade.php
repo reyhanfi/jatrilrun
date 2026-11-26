@@ -4,9 +4,17 @@
 
 @section('content')
     <div class="card">
-        <div class="eyebrow">Akses Admin</div>
         <h1>Login</h1>
-        <p>Login untuk mengelola data event Jatrilrun dengan lebih cepat dan teratur.</p>
+        <p>Masuk untuk melihat jadwal dan mengelola pendaftaran event.</p>
+
+        <a href="{{ route('google.redirect') }}" class="ghost-button" style="width: 100%; gap: 10px;">
+            <img src="{{ asset('images/google-g.png') }}" width="18" height="18" alt="">
+            Masuk dengan Google Kampus
+        </a>
+        <p class="section-note">Gunakan akun Google dengan alamat @mail.ugm.ac.id.</p>
+        @error('google')
+            <div class="error" role="alert">{{ $message }}</div>
+        @enderror
 
         <form action="{{ route('authenticate') }}" method="POST" class="auth-form">
             @csrf

@@ -7,6 +7,28 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Bab XIII — Google SSO dan antrean email Jatrilrun
+
+Pasang dependensi dengan `composer install` dan jalankan `php artisan migrate`.
+Isi konfigurasi lokal di `.env` untuk memakai OAuth Web Client milik proyek:
+
+```dotenv
+APP_URL=http://localhost:8000
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+QUEUE_CONNECTION=database
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+```
+
+Daftarkan URL callback yang persis sama pada **Authorized redirect URIs** di Google Cloud. Jika aplikasi OAuth memakai mode Testing, daftarkan akun kampus yang akan digunakan sebagai **Test user**. Jatrilrun memeriksa alamat `@mail.ugm.ac.id`, domain Google Workspace, dan verifikasi email. Login lokal tetap tersedia.
+
+Jalankan Mailpit di loopback dengan `mailpit --listen 127.0.0.1:8025 --smtp 127.0.0.1:1025`. Jalankan `php artisan config:clear`, buka aplikasi melalui `php artisan serve --host=localhost --port=8000`, dan jalankan `php artisan queue:work -v` di terminal terpisah. Kotak masuk uji tersedia di <http://localhost:8025>.
+
+Akun Google baru menerima email selamat datang. Admin menerima pemberitahuan lewat email dan dashboard. Setiap login aplikasi mengantrekan email aktivitas berisi waktu dan IP. Akun lokal yang sudah memakai alamat kampus yang sama tetap masuk dengan metode asal sampai identitasnya ditangani admin.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

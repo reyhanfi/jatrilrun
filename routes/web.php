@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleLoginController;
 use App\Http\Controllers\Auth\LoginRegisterController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventGalleryController;
 use App\Http\Controllers\EventRegistrationController;
@@ -19,6 +21,11 @@ Route::get('/', function () {
 
 Route::get('/events', [EventController::class, 'catalog'])->name('event.catalog');
 
+Route::middleware('guest')->controller(GoogleLoginController::class)->group(function () {
+    Route::get('/auth/google/redirect', 'redirect')->name('google.redirect');
+    Route::get('/auth/google/callback', 'callback')->name('google.callback');
+});
+
 Route::middleware('guest')
     ->controller(LoginRegisterController::class)
     ->group(function () {
@@ -30,8 +37,8 @@ Route::middleware('guest')
     });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::controller(LoginRegisterController::class)->group(function () {
-        Route::get('/dashboard', 'dashboard')->name('dashboard');
         Route::post('/logout', 'logout')->name('logout');
     });
 
@@ -53,6 +60,8 @@ Route::middleware('auth')->group(function () {
         ->name('event.registrations.create');
 
     Route::middleware('admin')->group(function () {
+        Route::post('/notifikasi/baca-semua', [DashboardController::class, 'bacaSemua'])
+            ->name('notifications.read-all');
         Route::resource('users', UserController::class);
         Route::get('/event/{event}/registrations', [EventRegistrationController::class, 'index'])
             ->name('event.registrations.index');
